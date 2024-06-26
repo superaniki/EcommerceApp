@@ -13,13 +13,13 @@ namespace EcommerceApp.Models
     {
         public int Id { get; set; }
 
-        [Required]
         [MaxLength(100)]
         public string Name { get; set; }
 
-        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
+
+        public uint Quantity { get; set; }
 
         [MaxLength(200)]
         public string ImageUrl { get; set; }
