@@ -16,17 +16,6 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-builder.Services.AddAuthentication()
-    .AddCookie(options =>
-    {
-        options.Events.OnValidatePrincipal = context =>
-        {
-            Console.WriteLine("Cookie validated");
-            return Task.CompletedTask;
-        };
-    });
-//builder.Services.AddScoped<UserManager<ApplicationUser>>();
-
 
 var app = builder.Build();
 

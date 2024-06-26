@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EcommerceApp.Data;
 using EcommerceApp.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EcommerceApp.Controllers
 {
@@ -44,6 +45,8 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Product/Create
+        [Authorize(Roles = "Administrator")]
+
         public IActionResult Create()
         {
             return View();
@@ -54,6 +57,8 @@ namespace EcommerceApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
+
         public async Task<IActionResult> Create([Bind("Id,Name,Price,Quantity,ImageUrl,VectorData")] Product product)
         {
             if (ModelState.IsValid)
@@ -66,6 +71,8 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Product/Edit/5
+        [Authorize(Roles = "Administrator")]
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -86,6 +93,8 @@ namespace EcommerceApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
+
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Quantity,ImageUrl,VectorData")] Product product)
         {
             if (id != product.Id)
@@ -117,6 +126,8 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Product/Delete/5
+        [Authorize(Roles = "Administrator")]
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -137,6 +148,8 @@ namespace EcommerceApp.Controllers
         // POST: Product/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
+
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);

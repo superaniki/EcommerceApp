@@ -9,9 +9,11 @@ using EcommerceApp.Data;
 using EcommerceApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EcommerceApp.Controllers
 {
+    [Authorize]
     public class CustomerController : Controller
     {
 
@@ -29,9 +31,27 @@ namespace EcommerceApp.Controllers
             _roleManager = roleManager;
         }
 
+
         // GET: Customer
         public async Task<IActionResult> Index()
         {
+            var user = User; // Get the current user
+
+            // Check if the user is authenticated
+            if (user.Identity.IsAuthenticated)
+            {
+                // Check if the user has the "Customer" role
+                if (user.IsInRole("Customer"))
+                {
+                    _logger.LogInformation("Is in role Customer");
+                }
+                else
+                {
+                    _logger.LogInformation("Is NOT in role Customer");
+                }
+            }
+
+
             var customers = await _context.Customers.Include(c => c.User).ToListAsync();
 
             var customerRoles = new List<CustomerWithRoles>();
@@ -49,12 +69,7 @@ namespace EcommerceApp.Controllers
             return View(customerRoles);
         }
 
-
-        //await _userManager.AddToRoleAsync(user, "Customer");
-        //ViewData["Role"] = "Hehe";
-        //            _userManager.GetRolesAsync()
-
-
+        [Authorize(Roles = "Administrator")]
         // GET: Customer/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -75,13 +90,10 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Customer/Create
+        [Authorize(Roles = "Customer, Administrator")]
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
-            //ViewData["RoleId"] = new SelectList(_context.Roles, "Id", "Name");
-            //ViewData["UserId"] = new SelectList(_roleManager.Roles, "Id", "Name");
-            //ViewData["RoleId"] = new SelectList(_roleManager.Roles, "Id", "Name");
-
             return View();
         }
 
@@ -90,16 +102,17 @@ namespace EcommerceApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        //[Authorize(Roles = "Administrators, Customers")]
+
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Address,PhoneNumber,UserId")] Customer customer)
         {
-            _logger.LogInformation("customer Userid: " + customer.UserId);
-            //_logger.LogInformation("customer Userid: " + customer.User.Id);
-            var user = await _userManager.FindByIdAsync(customer.UserId);
+            // Check if the user is authenticated
 
+            _logger.LogInformation("customer Userid: " + customer.UserId);
+            var user = await _userManager.FindByIdAsync(customer.UserId);
 
             if (user != null)
             {
-
                 // Assign the ApplicationUser object to the Customer.User property
                 customer.User = user;
 
@@ -114,21 +127,6 @@ namespace EcommerceApp.Controllers
                 ModelState.AddModelError("", "ApplicationUser not found.");
             }
 
-            /*
-                        if (ModelState.IsValid)
-                        {
-                            _logger.LogInformation("customer is valid");
-
-                            _context.Add(customer);
-                            await _context.SaveChangesAsync();
-                            return RedirectToAction(nameof(Index));
-                        }
-                        else
-                        {
-                            _logger.LogInformation("customer is invalid");
-                        }
-                        */
-
             ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "UserName", customer.UserId);
             //ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
 
@@ -137,6 +135,7 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Customer/Edit/5
+        [Authorize(Roles = "Administrator, Customer")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -158,6 +157,8 @@ namespace EcommerceApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator, Customer")]
+
         public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName,Email,Address,PhoneNumber,UserId")] Customer customer)
         {
             if (id != customer.Id)
@@ -190,6 +191,7 @@ namespace EcommerceApp.Controllers
         }
 
         // GET: Customer/Delete/5
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -209,6 +211,8 @@ namespace EcommerceApp.Controllers
         }
 
         // POST: Customer/Delete/5
+        [Authorize(Roles = "Administrator")]
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

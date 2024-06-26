@@ -5,30 +5,33 @@
 }
 
 <h1>Index</h1>
-<!--
+
 <p>
     <a asp-action="Create">Create New</a>
-</p>-->
+</p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.First().Customer.FirstName)
+                @Html.DisplayNameFor(model => model.Customer.FirstName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().Customer.LastName)
+                @Html.DisplayNameFor(model => model.Customer.LastName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().Customer.Address)
+                @Html.DisplayNameFor(model => model.Customer.Address)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.First().Customer.PhoneNumber)
+                @Html.DisplayNameFor(model => model.Customer.PhoneNumber)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.First().Customer.User)
             </th>
             <th>
                 Role
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer.User.Email)
             </th>
             <th></th>
         </tr>
@@ -54,6 +57,9 @@
             </td>
             <td>
                 @(item.Roles.FirstOrDefault())
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer.User.Email)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Customer.Id">Edit</a> |
