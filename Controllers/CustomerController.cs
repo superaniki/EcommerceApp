@@ -7,24 +7,53 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EcommerceApp.Data;
 using EcommerceApp.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 
 namespace EcommerceApp.Controllers
 {
     public class CustomerController : Controller
     {
-        private readonly ApplicationDbContext _context;
 
-        public CustomerController(ApplicationDbContext context)
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<CustomerController> _logger;
+
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
+        public CustomerController(ApplicationDbContext context, ILogger<CustomerController> logger, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _logger = logger;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         // GET: Customer
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Customers.Include(c => c.User);
-            return View(await applicationDbContext.ToListAsync());
+            var customers = await _context.Customers.Include(c => c.User).ToListAsync();
+
+            var customerRoles = new List<CustomerWithRoles>();
+
+            foreach (var customer in customers)
+            {
+                var roles = await _userManager.GetRolesAsync(customer.User);
+                customerRoles.Add(new CustomerWithRoles
+                {
+                    Customer = customer,
+                    Roles = roles
+                });
+            }
+
+            return View(customerRoles);
         }
+
+
+        //await _userManager.AddToRoleAsync(user, "Customer");
+        //ViewData["Role"] = "Hehe";
+        //            _userManager.GetRolesAsync()
+
 
         // GET: Customer/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -48,7 +77,11 @@ namespace EcommerceApp.Controllers
         // GET: Customer/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id");
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
+            //ViewData["RoleId"] = new SelectList(_context.Roles, "Id", "Name");
+            //ViewData["UserId"] = new SelectList(_roleManager.Roles, "Id", "Name");
+            //ViewData["RoleId"] = new SelectList(_roleManager.Roles, "Id", "Name");
+
             return View();
         }
 
@@ -59,14 +92,48 @@ namespace EcommerceApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Address,PhoneNumber,UserId")] Customer customer)
         {
-            if (ModelState.IsValid)
+            _logger.LogInformation("customer Userid: " + customer.UserId);
+            //_logger.LogInformation("customer Userid: " + customer.User.Id);
+            var user = await _userManager.FindByIdAsync(customer.UserId);
+
+
+            if (user != null)
             {
-                _context.Add(customer);
+
+                // Assign the ApplicationUser object to the Customer.User property
+                customer.User = user;
+
+                // Add the Customer entity to the context
+                _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", customer.UserId);
+            else
+            {
+                // Handle the case where the ApplicationUser is not found
+                ModelState.AddModelError("", "ApplicationUser not found.");
+            }
+
+            /*
+                        if (ModelState.IsValid)
+                        {
+                            _logger.LogInformation("customer is valid");
+
+                            _context.Add(customer);
+                            await _context.SaveChangesAsync();
+                            return RedirectToAction(nameof(Index));
+                        }
+                        else
+                        {
+                            _logger.LogInformation("customer is invalid");
+                        }
+                        */
+
+            ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "UserName", customer.UserId);
+            //ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
+
             return View(customer);
+
         }
 
         // GET: Customer/Edit/5

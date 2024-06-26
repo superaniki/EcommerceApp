@@ -1,3 +1,4 @@
+using EcommerceApp.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace EcommerceApp.Data
 {
     public static class DbInitializer
     {
+
         public static async Task SeedDatabaseAsync(this IApplicationBuilder app)
         {
             using (var scope = app.ApplicationServices.CreateScope())
@@ -18,7 +20,7 @@ namespace EcommerceApp.Data
                 try
                 {
                     var context = services.GetRequiredService<ApplicationDbContext>();
-                    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     await Initialize(context, userManager, roleManager);
                 }
@@ -30,7 +32,40 @@ namespace EcommerceApp.Data
             }
         }
 
-        private static async Task Initialize(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        private static async Task seedUser(ApplicationDbContext context, UserManager<ApplicationUser> userManager, String username, String email, String password, string role)
+        {
+            // Seed admin user
+            var appUser = new ApplicationUser
+            {
+                UserName = username,
+                Email = email
+            };
+
+            var user = await userManager.FindByEmailAsync(appUser.Email);
+
+            if (user == null)
+            {
+                var createUser = await userManager.CreateAsync(appUser, password);
+                if (createUser.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(appUser, role);
+
+                    // Create an empty Customer record for the new user
+                    var customer = new Customer
+                    {
+                        User = appUser,
+                        FirstName = "John",
+                        LastName = "Doe"
+                    };
+
+                    // Add the Customer entity to the context
+                    context.Customers.Add(customer);
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+
+        private static async Task Initialize(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             // Apply any pending migrations
             context.Database.Migrate();
@@ -49,23 +84,8 @@ namespace EcommerceApp.Data
             }
 
             // Seed admin user
-            var adminUser = new IdentityUser
-            {
-                UserName = "admin",
-                Email = "admin@example.com"
-            };
-
-            string adminPassword = "Admin@123";
-            var user = await userManager.FindByEmailAsync(adminUser.Email);
-
-            if (user == null)
-            {
-                var createAdminUser = await userManager.CreateAsync(adminUser, adminPassword);
-                if (createAdminUser.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-                }
-            }
+            await seedUser(context, userManager, "admin", "admin@example.com", "Admin@123", "Administrator");
+            //await seedUser(userManager, "rickard", "customer@gmail.com", "Customer@123", "Customer");
         }
     }
 }

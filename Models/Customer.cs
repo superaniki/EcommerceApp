@@ -4,32 +4,25 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace EcommerceApp.Models
+#nullable disable
+
 {
     public class Customer
     {
         [Key]
         public int Id { set; get; }
 
-        [Required]
         [MaxLength(100)]
         [Display(Name = "First Name")]
 
         public string FirstName { set; get; }
 
-        [Required]
         [MaxLength(100)]
         [Display(Name = "Last Name")]
 
         public string LastName { set; get; }
 
-        [Required]
-        [EmailAddress]
-        [MaxLength(100)]
-        public string Email { set; get; }
-
-        [Required]
         [MaxLength(100)]
         [Display(Name = "Full Address")]
 
@@ -39,7 +32,9 @@ namespace EcommerceApp.Models
         public string PhoneNumber { get; set; }
 
         [ForeignKey("User")]
+        [Display(Name = "Identity User")]
         public string UserId { get; set; }
+
         public virtual ApplicationUser User { get; set; }
     }
 }
