@@ -34,21 +34,26 @@ namespace EcommerceApp.Data
 
         private static async Task seedUser(ApplicationDbContext context, UserManager<ApplicationUser> userManager, String username, String email, String password, string role)
         {
-            // Seed admin user
-            var appUser = new ApplicationUser
-            {
-                UserName = username,
-                Email = email
-            };
 
-            var user = await userManager.FindByEmailAsync(appUser.Email);
+            var user = await userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
+                // Seed admin user
+                var appUser = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email
+                };
+
                 var createUser = await userManager.CreateAsync(appUser, password);
                 if (createUser.Succeeded)
                 {
                     await userManager.AddToRoleAsync(appUser, role);
+
+                    user = await userManager.FindByEmailAsync(email);
+                    var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var result = await userManager.ConfirmEmailAsync(user, code);
 
                     // Create an empty Customer record for the new user
                     var customer = new Customer
@@ -84,8 +89,8 @@ namespace EcommerceApp.Data
             }
 
             // Seed admin user
-            await seedUser(context, userManager, "admin", "admin@example.com", "Admin@123", "Administrator");
-            //await seedUser(userManager, "rickard", "customer@gmail.com", "Customer@123", "Customer");
+            await seedUser(context, userManager, "admin", "admin@example.com", "1q2w#E¤R5t6y", "Administrator");
+            await seedUser(context, userManager, "rickard", "customer@gmail.com", "Customer@123", "Customer");
         }
     }
 }
