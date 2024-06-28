@@ -2,6 +2,7 @@ import { Product } from "@/types/product";
 import ProductCard from "./product-card";
 
 export default function ProductGrid({ type, products }: { type: string, products: Product[] }) {
+
   console.log(products);
   return (
     <section className="mb-24" id={type}>

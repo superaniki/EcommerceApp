@@ -1,6 +1,9 @@
 import ProductGrid from '@/components/product-grid/product-grid';
 
 export function fetchAllProducts() {
+	return fetch(`http://localhost:5115/api/products`).then((res) => res.json());
+
+	/*
 	return [
 		{
 			name: 'Sloyd',
@@ -11,6 +14,7 @@ export function fetchAllProducts() {
 			slug: 'sloyd-1',
 		},
 	];
+	*/
 }
 /*
 	return fetch(
