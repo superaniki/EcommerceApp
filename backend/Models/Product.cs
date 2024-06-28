@@ -16,6 +16,10 @@ namespace EcommerceApp.Models
         [MaxLength(100)]
         public string Name { get; set; }
 
+        public string Slug { get; set; }
+
+        public string Description { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 

@@ -20,6 +20,14 @@ namespace EcommerceApp.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [Route("api/products")]
+        public async Task<IActionResult> GetProducts()
+        {
+            var products = await _context.Products.ToListAsync();
+            return Ok(products);
+        }
+
         // GET: Product
         public async Task<IActionResult> Index()
         {
@@ -46,7 +54,6 @@ namespace EcommerceApp.Controllers
 
         // GET: Product/Create
         [Authorize(Roles = "Administrator")]
-
         public IActionResult Create()
         {
             return View();
@@ -58,8 +65,7 @@ namespace EcommerceApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-
-        public async Task<IActionResult> Create([Bind("Id,Name,Price,Quantity,ImageUrl,VectorData")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,Slug,Description,Price,Quantity,ImageUrl,VectorData")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -72,7 +78,6 @@ namespace EcommerceApp.Controllers
 
         // GET: Product/Edit/5
         [Authorize(Roles = "Administrator")]
-
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -94,8 +99,7 @@ namespace EcommerceApp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price,Quantity,ImageUrl,VectorData")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Slug,Description,Price,Quantity,ImageUrl,VectorData")] Product product)
         {
             if (id != product.Id)
             {
@@ -127,7 +131,6 @@ namespace EcommerceApp.Controllers
 
         // GET: Product/Delete/5
         [Authorize(Roles = "Administrator")]
-
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -149,7 +152,6 @@ namespace EcommerceApp.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrator")]
-
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);
