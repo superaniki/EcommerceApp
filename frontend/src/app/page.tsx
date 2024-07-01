@@ -12,8 +12,11 @@ export default async function Dashboard() {
 
   return (
     <div>
+      Logged in!
+      {/*
       <h1>Welcome, {authStatus.userEmail}</h1>
       <p>Your roles: {authStatus.userRoles?.join(', ') || ''}</p>
+*/}
     </div>
   );
 }

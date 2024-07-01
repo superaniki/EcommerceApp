@@ -12,7 +12,7 @@ export type LoginFormDataInputs = {
 
 export function LoginDialog({ closeModal }: { closeModal: () => void }) {
     const [error, setError] = useState('');
-    const { register, handleSubmit, formState: { errors } } = useForm<Inputs>();
+    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormDataInputs>();
 
     const onSubmit = async (data: LoginFormDataInputs) => {
         try {

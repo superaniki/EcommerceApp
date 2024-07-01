@@ -28,7 +28,11 @@ export async function login(formData: LoginFormDataInputs) {
 		});
 
 		if (response.ok) {
-			console.log('Login successful');
+			console.log('success!');
+
+			//var data = await response.json();
+			//console.log('Login successful: ', data);
+
 			return { success: true };
 		} else {
 			console.error('Login failed');
@@ -42,6 +46,27 @@ export async function login(formData: LoginFormDataInputs) {
 
 // auth.ts
 
+export async function checkAuth() {
+	try {
+		const response = await fetch('http://localhost:5115/api/auth/check-auth', {
+			credentials: 'include',
+		});
+
+		if (response.ok) {
+			console.log('test: is authenticated!');
+			return { isAuthenticated: true };
+		} else {
+			console.log('tet: is NOT authenticated!');
+
+			return { isAuthenticated: false };
+		}
+	} catch (error) {
+		console.error('Error checking authentication:', error);
+		return { isAuthenticated: false };
+	}
+}
+
+/*
 export async function checkAuth() {
 	const cookieStore = cookies();
 	const jwtCookie = cookieStore.get('jwt')?.value;
@@ -67,7 +92,9 @@ export async function checkAuth() {
 		return { isAuthenticated: false };
 	}
 }
+	*/
 
+/*
 export async function checkAuthNookie(ctx?: any) {
 	const cookies = parseCookies(ctx);
 	const jwtCookie = cookies['jwt'];
@@ -93,3 +120,4 @@ export async function checkAuthNookie(ctx?: any) {
 		return { isAuthenticated: false };
 	}
 }
+	*/
