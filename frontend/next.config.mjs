@@ -13,7 +13,15 @@ const nextConfig = {
         pathname: '/premium_photo-**'
       }
     ]
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:5115/api/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

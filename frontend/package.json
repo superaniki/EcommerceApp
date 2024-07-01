@@ -9,18 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.1.1",
+    "jose": "^5.6.2",
+    "jsonwebtoken": "^9.0.2",
+    "next": "15.0.0-canary.44",
+    "nookies": "^2.5.2",
     "react": "19.0.0-rc.0",
     "react-dom": "19.0.0-rc.0",
-    "next": "15.0.0-canary.44"
+    "react-hook-form": "^7.52.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.0-canary.44",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "15.0.0-canary.44"
+    "typescript": "^5"
   }
 }
