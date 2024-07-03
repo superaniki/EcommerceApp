@@ -29,6 +29,7 @@ namespace EcommerceApp.Controllers
     [HttpPost]
     [Route("login")]
     [AllowAnonymous]
+
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
       Console.WriteLine($"Login attempt: Email={request.Email}, Password={request.Password}");
@@ -71,6 +72,7 @@ namespace EcommerceApp.Controllers
         Console.WriteLine("cookieoptions: " + cookieOptions);
 
         Response.Cookies.Append("jwt", new JwtSecurityTokenHandler().WriteToken(token), cookieOptions);
+
         Response.Cookies.Append("testing", "Hejsan hoppsan!", new CookieOptions
         {
           HttpOnly = false,
@@ -80,7 +82,7 @@ namespace EcommerceApp.Controllers
           Secure = false,
           Domain = "localhost",
         }
-        );
+         );
 
         HttpContext.Response.Cookies.Append(
                      "test2", "value",
@@ -112,8 +114,11 @@ namespace EcommerceApp.Controllers
         }
         */
       }
+      else
+      {
+        return Unauthorized();
+      }
 
-      return Unauthorized();
     }
 
     [HttpGet]

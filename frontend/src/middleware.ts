@@ -18,9 +18,12 @@ export async function middleware(request: NextRequest) {
 	if (response.isAuthenticated) {
 		return NextResponse.next();
 	} else {
+		// Redirect to login page if no token is present
+		console.log();
 		return NextResponse.redirect(new URL('/login', request.url));
 	}
 
+	/*
 	// Check for the presence of the JWT token in cookies
 	const jwtToken = request.cookies.get('jwt')?.value;
 
@@ -42,6 +45,7 @@ export async function middleware(request: NextRequest) {
 		// Redirect to login page if token is invalid
 		return NextResponse.redirect(new URL('/login', request.url));
 	}
+		*/
 }
 
 // Configure which routes to run the middleware on

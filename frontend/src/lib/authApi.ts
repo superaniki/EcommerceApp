@@ -1,9 +1,7 @@
 'use server';
 import { cookies } from 'next/headers';
 import { LoginFormDataInputs } from '@/components/authentification/login-dialog';
-import { parseSetCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import setCookieParser from 'set-cookie-parser';
-import { serialize } from 'v8';
 
 export async function login(formData: LoginFormDataInputs) {
 	const email = formData.email;
