@@ -1,8 +1,9 @@
 'use server';
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
-import { parseCookies } from 'nookies';
 import { LoginFormDataInputs } from '@/components/authentification/login-dialog';
+import { parseSetCookie } from 'next/dist/compiled/@edge-runtime/cookies';
+import setCookieParser from 'set-cookie-parser';
+import { serialize } from 'v8';
 
 export async function login(formData: LoginFormDataInputs) {
 	const email = formData.email;
@@ -28,8 +29,24 @@ export async function login(formData: LoginFormDataInputs) {
 		});
 
 		if (response.ok) {
-			console.log('success!');
+			// get the cookies from the response
 
+			//var setCookies = Response.Headers["Set-Cookie"];
+			response.headers.forEach(function (value, key) {
+				console.log(key + ': ' + value);
+			});
+
+			const setCookieHeader = response.headers.getSetCookie();
+			console.log('setCookieHeader: ', setCookieHeader);
+
+			proxyServerCookies(['jwt'], response);
+
+			var jwtValue = cookies().get('jwt')?.value;
+			console.log('jwtValue:', jwtValue);
+
+			//response.headers.set('set-cookie', 'cookieString');
+
+			//return encryptedSessionData ? JSON.parse(decrypt(encryptedSessionData)) : null;
 			//var data = await response.json();
 			//console.log('Login successful: ', data);
 
@@ -44,6 +61,37 @@ export async function login(formData: LoginFormDataInputs) {
 	}
 }
 
+export const proxyServerCookies = async (cookieNames: string[], response: Response) => {
+	if (response.headers.has('set-cookie')) {
+		const cookieString = response.headers.get('set-cookie')!;
+
+		const cookieObject = setCookieParser.parse(setCookieParser.splitCookiesString(cookieString), {
+			map: true,
+		});
+
+		cookieNames.forEach((cookieName) => {
+			if (cookieObject[cookieName]) {
+				const cookie = cookieObject[cookieName];
+
+				console.debug(`[API Request] Proxying cookie ${cookieName} to client.`);
+				console.log('[API Request] Proxying cookie: ', cookie);
+
+				cookies().set(cookieName, cookie.value, {
+					path: cookie.path,
+					domain: cookie.domain,
+					maxAge: cookie.maxAge,
+					sameSite: cookie.sameSite as 'lax' | 'strict' | 'none' | boolean | undefined,
+					//					expires: cookie.expires,
+					secure: cookie.secure,
+					httpOnly: cookie.httpOnly,
+				});
+			}
+		});
+	}
+
+	return response;
+};
+
 // auth.ts
 
 export async function checkAuth() {
@@ -56,7 +104,7 @@ export async function checkAuth() {
 			console.log('test: is authenticated!');
 			return { isAuthenticated: true };
 		} else {
-			console.log('tet: is NOT authenticated!');
+			console.log('test: is NOT authenticated!');
 
 			return { isAuthenticated: false };
 		}

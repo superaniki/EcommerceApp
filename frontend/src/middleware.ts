@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { checkAuth } from './lib/authApi';
 
 // List of paths that don't require authentication
 const publicPaths = ['/login', '/register', '/', '/api/auth/login'];
@@ -11,6 +12,13 @@ export async function middleware(request: NextRequest) {
 	// Allow access to public paths without authentication
 	if (publicPaths.includes(path)) {
 		return NextResponse.next();
+	}
+
+	var response = await checkAuth();
+	if (response.isAuthenticated) {
+		return NextResponse.next();
+	} else {
+		return NextResponse.redirect(new URL('/login', request.url));
 	}
 
 	// Check for the presence of the JWT token in cookies

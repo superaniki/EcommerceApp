@@ -4,6 +4,8 @@ import { HeaderLink } from "../UI/HeaderLink";
 import { AuthNav } from "../authentification/auth-nav";
 
 
+
+
 export default function Header() {
   return <div className="flex h-100px p-5 justify-center bg-cakery_timberwolf-900">
     <div className="block w-full mx-8 md:flex justify-between">

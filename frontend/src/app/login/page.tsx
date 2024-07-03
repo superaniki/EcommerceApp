@@ -5,7 +5,6 @@ export default async function Page() {
 
   return <>
     <div>Protected content!</div>
-
     <div>Login please!</div>
   </>
 }
