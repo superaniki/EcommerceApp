@@ -1,7 +1,7 @@
 'use server';
-import { cookies } from 'next/headers';
 import { LoginFormDataInputs } from '@/components/authentification/login-dialog';
-import setCookieParser from 'set-cookie-parser';
+import { proxyServerCookies } from './proxyServerCookies';
+import { cookies } from 'next/headers';
 
 export async function login(formData: LoginFormDataInputs) {
 	const email = formData.email;
@@ -37,18 +37,13 @@ export async function login(formData: LoginFormDataInputs) {
 			const setCookieHeader = response.headers.getSetCookie();
 			console.log('setCookieHeader: ', setCookieHeader);
 
-			proxyServerCookies(['jwt'], response);
+			proxyServerCookies(['jwt', 'rox'], response);
 
 			var jwtValue = cookies().get('jwt')?.value;
-			console.log('jwtValue:', jwtValue);
-
-			//response.headers.set('set-cookie', 'cookieString');
-
-			//return encryptedSessionData ? JSON.parse(decrypt(encryptedSessionData)) : null;
-			//var data = await response.json();
-			//console.log('Login successful: ', data);
-
-			return { success: true };
+			if (jwtValue == undefined) {
+				return { success: false, error: 'Login ok but jwt not set in client' };
+			}
+			return { success: true, message: 'Login ok and JWT httponly cookie set' };
 		} else {
 			console.error('Login failed');
 			return { success: false, error: 'Invalid credentials' };
@@ -59,40 +54,14 @@ export async function login(formData: LoginFormDataInputs) {
 	}
 }
 
-export const proxyServerCookies = async (cookieNames: string[], response: Response) => {
-	if (response.headers.has('set-cookie')) {
-		const cookieString = response.headers.get('set-cookie')!;
-
-		const cookieObject = setCookieParser.parse(setCookieParser.splitCookiesString(cookieString), {
-			map: true,
-		});
-
-		cookieNames.forEach((cookieName) => {
-			if (cookieObject[cookieName]) {
-				const cookie = cookieObject[cookieName];
-
-				console.debug(`[API Request] Proxying cookie ${cookieName} to client.`);
-				console.log('[API Request] Proxying cookie: ', cookie);
-
-				cookies().set(cookieName, cookie.value, {
-					path: cookie.path,
-					domain: cookie.domain,
-					maxAge: cookie.maxAge,
-					sameSite: cookie.sameSite as 'lax' | 'strict' | 'none' | boolean | undefined,
-					//					expires: cookie.expires,
-					secure: cookie.secure,
-					httpOnly: cookie.httpOnly,
-				});
-			}
-		});
-	}
-
-	return response;
-};
-
-// auth.ts
+export async function logout() {
+	cookies().delete('jwt');
+}
 
 export async function checkAuth() {
+	var jwtValue = cookies().get('jwt')?.value;
+	console.log('checkauth(), jwtcookie: ', jwtValue);
+
 	try {
 		const response = await fetch('http://localhost:5115/api/auth/check-auth', {
 			credentials: 'include',

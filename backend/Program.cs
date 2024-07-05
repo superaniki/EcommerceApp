@@ -32,20 +32,24 @@ builder.Services.AddCors(options =>
     });
 });
 
+/*
+// Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.LogoutPath = "/Identity/Account/Logout";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set cookie expiration as needed
+    options.SlidingExpiration = true;
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.SaveToken = true;
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = false; // Set to true in production
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -57,6 +61,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
+*/
 
 builder.Services.AddControllersWithViews();
 
@@ -64,7 +69,7 @@ builder.Services.AddControllersWithViews();
 var app = builder.Build();
 
 await app.SeedDatabaseAsync();
-app.UseCors("AllowSpecificOrigin");
+app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -3,9 +3,8 @@ import { checkAuth, login } from '@/lib/authApi';
 import { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { NiceDialog } from "../UI/NiceDialog";
-import { signIn } from "next-auth/react";
-
-
+import { redirect } from "next/dist/server/api-utils";
+//import { signIn } from "next-auth/react";
 
 export type LoginFormDataInputs = {
     email: string
@@ -18,15 +17,12 @@ export function LoginDialog({ closeModal }: { closeModal: () => void }) {
 
     const onSubmit = async (data: LoginFormDataInputs) => {
         try {
-            //await signIn("credentials", data);
-
             var response = await login(data);
 
             if (response.success) {
-                console.log("login successful");
+                console.log(response.message);
                 // httponly cookie should be set now.
                 closeModal();
-
             } else {
                 setError(response.error!);
             }

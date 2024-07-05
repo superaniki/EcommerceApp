@@ -5,7 +5,7 @@ export default async function Page() {
   const products = await fetchAllProducts();
 
   return <>
-    <ProductGrid type={"Sloyd"} products={products} />
+    <ProductGrid type={"Strawberry products"} products={products} />
 
   </>
 }

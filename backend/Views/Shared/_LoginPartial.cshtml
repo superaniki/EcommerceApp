@@ -3,6 +3,16 @@
 @inject UserManager<ApplicationUser> UserManager
 
 <ul class="navbar-nav">
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <p>Welcome, @User.Identity.Name!</p>
+        <p>You are authenticated.</p>
+    }
+    else
+    {
+        <p>You are not authenticated.</p>
+    }
     @if (SignInManager.IsSignedIn(User))
     {
         <li class="nav-item">

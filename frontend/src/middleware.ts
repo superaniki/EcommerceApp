@@ -14,6 +14,8 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 
+	return NextResponse.next();
+
 	var response = await checkAuth();
 	if (response.isAuthenticated) {
 		return NextResponse.next();

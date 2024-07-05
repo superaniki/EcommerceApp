@@ -1,13 +1,12 @@
 using EcommerceApp.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace EcommerceApp.Controllers
 {
@@ -26,10 +25,35 @@ namespace EcommerceApp.Controllers
       _configuration = configuration;
     }
 
+    public async Task<JwtSecurityToken> GenerateJwtToken(string email, DateTime expires)
+    {
+      var user = await _userManager.FindByEmailAsync(email);
+      var userRoles = await _userManager.GetRolesAsync(user);
+      var claims = new[]
+      {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()),
+        };
+
+      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+      var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+      var token = new JwtSecurityToken(
+          _configuration["Jwt:Issuer"],
+          _configuration["Jwt:Audience"],
+          claims,
+          expires: expires,
+          signingCredentials: creds
+      );
+
+      Console.WriteLine("token: " + token);
+      return token;
+    }
+
     [HttpPost]
     [Route("login")]
     [AllowAnonymous]
-
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
       Console.WriteLine($"Login attempt: Email={request.Email}, Password={request.Password}");
@@ -38,28 +62,8 @@ namespace EcommerceApp.Controllers
 
       if (result.Succeeded)
       {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        var userRoles = await _userManager.GetRolesAsync(user);
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role, userRoles.FirstOrDefault()),
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"]));
-
-        var token = new JwtSecurityToken(
-            _configuration["Jwt:Issuer"],
-            _configuration["Jwt:Audience"],
-            claims,
-            expires: expires,
-            signingCredentials: creds
-        );
-
-        Console.WriteLine("token: " + token);
+        DateTime expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"]));
+        var token = await GenerateJwtToken(request.Email, expires);
 
         var cookieOptions = new CookieOptions
         {
@@ -69,50 +73,11 @@ namespace EcommerceApp.Controllers
           Secure = false,
         };
 
-        Console.WriteLine("cookieoptions: " + cookieOptions);
-
         Response.Cookies.Append("jwt", new JwtSecurityTokenHandler().WriteToken(token), cookieOptions);
-
-        Response.Cookies.Append("testing", "Hejsan hoppsan!", new CookieOptions
-        {
-          HttpOnly = false,
-          IsEssential = true,
-          SameSite = SameSiteMode.Strict, //None 
-          Expires = expires,
-          Secure = false,
-          Domain = "localhost",
-        }
-         );
-
-        HttpContext.Response.Cookies.Append(
-                     "test2", "value",
-                     new CookieOptions() { SameSite = SameSiteMode.Lax });
-
-        // Check the cookies
-        var setCookies = Response.Headers["Set-Cookie"];
-        Console.WriteLine("Set-Cookie headers:");
-        foreach (var cookie in setCookies)
-        {
-          Console.WriteLine("the cookie:" + cookie);
-        }
-
-
-        //var cookies = Response.Cookies.ToJson();
-        //Console.WriteLine("Cookies: " + cookies);
+        Response.Cookies.Append("rox", "Testingtesting!", cookieOptions);
 
         return Ok();
 
-        /*
-        if (user != null)
-        {
-          await _signInManager.SignInAsync(user, isPersistent: false);
-          return Ok();
-        }
-        else
-        {
-          return Unauthorized();
-        }
-        */
       }
       else
       {
@@ -123,6 +88,7 @@ namespace EcommerceApp.Controllers
 
     [HttpGet]
     [Route("check-auth")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public IActionResult CheckAuth()
     {
       // Check if the user is authenticated by validating the JWT cookie
@@ -136,30 +102,45 @@ namespace EcommerceApp.Controllers
         {
           var tokenHandler = new JwtSecurityTokenHandler();
           var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
-          tokenHandler.ValidateToken(jwtCookie, new TokenValidationParameters
+
+          var validationParameters = new TokenValidationParameters
           {
-            ValidateIssuerSigningKey = true,
+            ValidateIssuerSigningKey = false,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = true,
             ValidIssuer = _configuration["Jwt:Issuer"],
             ValidateAudience = true,
             ValidAudience = _configuration["Jwt:Audience"],
-            ValidateLifetime = true,
+            ValidateLifetime = false, // skip this for now
             ClockSkew = TimeSpan.Zero
-          }, out SecurityToken validatedToken);
+          };
 
-          return Ok();
+          var principal = tokenHandler.ValidateToken(jwtCookie, validationParameters, out SecurityToken validatedToken);
+          //var claims = principal.Claims.Select(claim => new { claim.Type, claim.Value }).ToList();
+          var claims = principal.Claims.ToDictionary(c => c.Type, c => c.Value);
+
+          var simplifiedClaims = new Dictionary<string, string>
+            {
+                { "Email", claims[ClaimTypes.NameIdentifier] },
+                { "Role", claims[ClaimTypes.Role] },
+                { "Jti", claims[JwtRegisteredClaimNames.Jti] },
+                { "Exp", claims[JwtRegisteredClaimNames.Exp] },
+                { "Issuer", claims[JwtRegisteredClaimNames.Iss] },
+                { "Audience", claims[JwtRegisteredClaimNames.Aud] }
+            };
+
+          Console.WriteLine("Token validated");
+          return Ok(new { Claims = simplifiedClaims });
         }
         catch (Exception ex)
         {
+          Console.WriteLine("Invalid token", ex.Data);
           // Handle token validation error
           return Unauthorized();
         }
       }
 
       Console.WriteLine("NO JWT cookie found");
-
-
       return Unauthorized();
     }
 
