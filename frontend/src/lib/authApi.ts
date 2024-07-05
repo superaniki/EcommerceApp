@@ -3,9 +3,9 @@ import { LoginFormDataInputs } from '@/components/authentification/login-dialog'
 import { proxyServerCookies } from './proxyServerCookies';
 import { cookies } from 'next/headers';
 
-export async function login(formData: LoginFormDataInputs) {
-	const email = formData.email;
-	const password = formData.password;
+export async function apiLogin(email: string, password: string) {
+	//const email = email;
+	//const password = password;
 
 	if (!email || !password) {
 		console.error('Email or password is missing');
@@ -37,7 +37,7 @@ export async function login(formData: LoginFormDataInputs) {
 			const setCookieHeader = response.headers.getSetCookie();
 			console.log('setCookieHeader: ', setCookieHeader);
 
-			proxyServerCookies(['jwt', 'rox'], response);
+			proxyServerCookies(['jwt'], response);
 
 			var jwtValue = cookies().get('jwt')?.value;
 			if (jwtValue == undefined) {

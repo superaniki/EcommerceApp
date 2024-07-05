@@ -3,7 +3,7 @@
 // utils/auth.js
 import axios from 'axios';
 
-export const validateJWT = async () => {
+export const apiValidateJWT = async () => {
 	try {
 		console.log('validateJWT()');
 		const response = await axios.get('http://localhost:5115/api/auth/check-auth', {

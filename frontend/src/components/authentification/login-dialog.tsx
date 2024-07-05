@@ -1,9 +1,9 @@
 import { DialogTitle } from "@headlessui/react";
-import { checkAuth, login } from '@/lib/authApi';
 import { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { NiceDialog } from "../UI/NiceDialog";
 import { redirect } from "next/dist/server/api-utils";
+import { useAuth } from "@/context/AuthContext";
 //import { signIn } from "next-auth/react";
 
 export type LoginFormDataInputs = {
@@ -13,18 +13,20 @@ export type LoginFormDataInputs = {
 
 export function LoginDialog({ closeModal }: { closeModal: () => void }) {
     const [error, setError] = useState('');
+    const { login } = useAuth();
+
+
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormDataInputs>();
 
     const onSubmit = async (data: LoginFormDataInputs) => {
         try {
-            var response = await login(data);
+            var result = await login(data);
 
-            if (response.success) {
-                console.log(response.message);
-                // httponly cookie should be set now.
+            if (result.success) {
+                console.log(result.message);
                 closeModal();
             } else {
-                setError(response.error!);
+                setError(result.error!);
             }
         } catch (error) {
             console.log(error);

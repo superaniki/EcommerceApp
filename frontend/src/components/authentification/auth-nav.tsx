@@ -9,7 +9,7 @@ import axios from 'axios';
 
 export function AuthNav() {
 	const [isOpen, setIsOpen] = useState(false);
-	const { isAuthenticated, loading, data } = useAuth();
+	const { isAuthenticated, loading, data, logout } = useAuth();
 
 	console.log("data:" + data.email);
 
@@ -23,26 +23,13 @@ export function AuthNav() {
 	if (loading) {
 		return <div>Loading...</div>
 	}
-	async function logout(): Promise<void> {
-		try {
-			const response = await axios.post('/api/logout');
-			if (response.status === 200) {
-				console.log('Successfully logged out');
-				// Perform any additional logout actions, such as redirecting to the login page
-			} else {
-				console.error('Logout failed');
-			}
-		} catch (error) {
-			console.error('Request error:', error);
-		}
-	}
 
 	return (
 		<>
 			{!isAuthenticated && <Link href="#" className="m-auto" onClick={openModal}> Log in </Link>}
 			{isAuthenticated && <>
-				<div>email: {data.email}</div>
-				<Link href="#" className="m-auto" onClick={logout}> Log out </Link>
+				<div>Hello {data.email}!</div>
+				<Link href="#" className="m-auto border px-3 rounded-md bg-gray-100" onClick={logout}> Log out </Link>
 			</>}
 
 

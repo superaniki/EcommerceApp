@@ -1,10 +1,15 @@
 "use client"
 
 import { createContext } from 'react';
-import { validateJWT } from '@/lib/validateJWT';
+import { apiValidateJWT } from '@/lib/validateJWT';
 import { useContext, useEffect, useState } from 'react';
+import { LoginFormDataInputs } from '@/components/authentification/login-dialog';
+import { apiLogin } from '@/lib/authApi';
+import axios from 'axios';
 
 interface AuthContextProps {
+  login: (data: LoginFormDataInputs) => Promise<{ success: boolean, message?: string, error?: string }>;
+  logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
   data: JwtData;
@@ -25,32 +30,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     role: ""
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      console.log("useEffect to validateJWT()");
-      const result = await validateJWT();
-      if (result.success == true) {
-        setIsAuthenticated(true);
-        setData({
-          email: result.data!.email,
-          role: result.data!.role
-        })
+  /*
+  function validateJWT(){
 
-      } else {
+
+  }*/
+
+  const validateJwt = async () => {
+    console.log("useEffect to validateJWT()");
+    const result = await apiValidateJWT();
+    if (result.success == true) {
+      console.log("loggin in, and setting authentification TRUE");
+      setIsAuthenticated(true);
+      setData({
+        email: result.data!.email,
+        role: result.data!.role
+      })
+
+    } else {
+      console.log("fail and setting authentification FALSE");
+
+      setIsAuthenticated(false);
+      setData({
+        email: "",
+        role: ""
+      });
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    validateJwt();
+  }, []);
+
+  async function login(data: LoginFormDataInputs) {//email: string, password: string) {
+    var result = await apiLogin(data.email, data.password);
+    validateJwt();
+    return result;
+  }
+
+  async function logout() {
+    try {
+      const response = await axios.post('/api/logout');
+      if (response.status === 200) {
         setIsAuthenticated(false);
         setData({
           email: "",
           role: ""
         });
+        console.log('Successfully logged out');
+        // Perform any additional logout actions, such as redirecting to the login page
+      } else {
+        console.error('Logout failed');
       }
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, []);
+    } catch (error) {
+      console.error('Request error:', error);
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, data }}>
+    <AuthContext.Provider value={{ login, logout, isAuthenticated, loading, data }}>
       {children}
     </AuthContext.Provider>
   );
